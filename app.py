@@ -1,3 +1,6 @@
+#Authors:-Mikhael Sunil,Rohith P,Mujaidha M
+#Automated License Plate Detection System for indoor environemnts
+
 import streamlit as st
 import numpy as np
 from PIL import Image

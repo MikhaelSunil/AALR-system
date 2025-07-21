@@ -5,6 +5,32 @@ import csv
 import os
 from PIL import Image
 import numpy as np
+import re
+
+def preprocess_green_plate(plate_img):
+    # Resize for better OCR readability
+    plate_img = cv2.resize(plate_img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    
+    # Convert to HSV and mask only white characters
+    hsv = cv2.cvtColor(plate_img, cv2.COLOR_BGR2HSV)
+    
+    # Mask for white text (tuned for green background)
+    lower_white = np.array([0, 0, 200])
+    upper_white = np.array([180, 50, 255])
+    white_mask = cv2.inRange(hsv, lower_white, upper_white)
+
+    # Bitwise AND to keep only white characters
+    result = cv2.bitwise_and(plate_img, plate_img, mask=white_mask)
+
+    # Convert to grayscale
+    gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+
+    # Apply threshold
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    return thresh
+
+
 def set_background(image_file):
     """
     This function sets the background of a Streamlit app to an image specified by the given image file.
@@ -29,7 +55,7 @@ def set_background(image_file):
     st.markdown(style, unsafe_allow_html=True)
 
 # Initialize the OCR reader
-reader = easyocr.Reader(['en'], gpu=False)
+reader = easyocr.Reader(['en'], gpu=True)
 
 # Mapping dictionaries for character conversion
 dict_char_to_int = {'O': '0',
